@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?><!-- ~ Copyright abenefic (c) 2017. -->
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright abenefic (c) 2017.
+  -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ru.itmasterskaya.workatwalk">
 
@@ -6,6 +8,12 @@
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <service android:name=".FirebaseInstanseService">
+        <intent-filter>
+            <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+        </intent-filter>
+    </service>
 
     <application
         android:allowBackup="true"
@@ -24,7 +32,13 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:label="@string/title_activity_login"></activity>
+            android:label="@string/title_activity_login" />
+
+        <service android:name=".FirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
