@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright abenefic (c) 2017.
+  -->
+
+<resources>
+    <string name="app_name">Work At Walk</string>
+    <string name="action_sign_in">Войти или зарегистрироваться</string>
+    <string name="action_sign_in_short">Войти</string>
+    <string name="error_field_required">Поле обязательно</string>
+    <string name="error_incorrect_password">Неверный пароль</string>
+    <string name="error_invalid_email">Неверный email</string>
+    <string name="error_invalid_password">Пароль слишком короткий</string>
+    <string name="permission_rationale">\"Доступ к контактам требуется для автозаполнения email\"</string>
+    <string name="prompt_password">Пароль</string>
+    <string name="server">Сервер</string>
+    <string name="title_activity_login">Вход</string>
+</resources>
