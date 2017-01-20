@@ -11,6 +11,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.Calendar;
+import java.util.HashMap;
 
 
 public class SqlDataManager extends SQLiteOpenHelper {
@@ -39,6 +40,13 @@ public class SqlDataManager extends SQLiteOpenHelper {
     private static final String NOTIFICATIONS_TYPE = "Type";
     private static final String SOAP_LOG_TABLE = "SoapLog";
     private static final String SOAP_LOG_ID = "_ID";
+
+    private static final String OBJECTS_DB = "ObjectsDD";
+    private static final String OBJECTS_ID = "_ID";
+    private static final String OBJECTS_IDENTIFICATOR = "Identificator";
+    private static final String OBJECTS_KEY = "ObjectKey";
+    private static final String OBJECTS_VALUE = "ObjectValue";
+
     private static final int version = 1;
 
     private static SqlDataManager instance;
@@ -82,6 +90,13 @@ public class SqlDataManager extends SQLiteOpenHelper {
                 SOAP_LOG_REQUEST + " TEXT, " +
                 SOAP_LOG_RESULT + " TEXT);");
 
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + OBJECTS_DB +
+                " (" + OBJECTS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                OBJECTS_KEY + " TEXT," +
+                OBJECTS_VALUE + " TEXT," +
+                OBJECTS_IDENTIFICATOR + " TEXT." +
+                "UNIQUE (" + OBJECTS_IDENTIFICATOR + "," + OBJECTS_KEY + "));");
+
     }
 
     @Override
@@ -91,6 +106,17 @@ public class SqlDataManager extends SQLiteOpenHelper {
             upgradeTo12(db);
         }*/
 
+    }
+
+    private void writeObject(SQLiteDatabase db, String objectID, HashMap values, HashMap tables) {
+        ContentValues cv = new ContentValues();
+        cv.put(OBJECTS_IDENTIFICATOR, objectID);
+        db.replace(OBJECTS_DB, null, cv);
+    }
+
+    void writeObject(String objectID, HashMap values, HashMap tables) {
+        SQLiteDatabase db = getReadableDatabase();
+        writeObject(db, objectID, values, tables);
     }
 
     private Cursor getAllNotifications(SQLiteDatabase db) {
@@ -138,8 +164,7 @@ public class SqlDataManager extends SQLiteOpenHelper {
         );
     }
 
-
-    public void writeNotifications(String objectID, long time, int type) {
+    void writeNotifications(String objectID, long time, int type) {
         SQLiteDatabase db = getReadableDatabase();
         writeNotifications(db, objectID, time, type);
     }
