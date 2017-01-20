@@ -11,7 +11,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.Calendar;
-import java.util.HashMap;
+import java.util.Map;
 
 
 public class SqlDataManager extends SQLiteOpenHelper {
@@ -44,8 +44,8 @@ public class SqlDataManager extends SQLiteOpenHelper {
     private static final String OBJECTS_DB = "ObjectsDD";
     private static final String OBJECTS_ID = "_ID";
     private static final String OBJECTS_IDENTIFICATOR = "Identificator";
-    private static final String OBJECTS_KEY = "ObjectKey";
-    private static final String OBJECTS_VALUE = "ObjectValue";
+    private static final String OBJECTS_ORDER = "ObjectOrder";
+    private static final String OBJECTS_KEYS = "ObjectKeys";
 
     private static final int version = 1;
 
@@ -92,10 +92,10 @@ public class SqlDataManager extends SQLiteOpenHelper {
 
         db.execSQL("CREATE TABLE IF NOT EXISTS " + OBJECTS_DB +
                 " (" + OBJECTS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                OBJECTS_KEY + " TEXT," +
-                OBJECTS_VALUE + " TEXT," +
+                OBJECTS_ORDER + " TEXT," +
+                OBJECTS_KEYS + " TEXT," +
                 OBJECTS_IDENTIFICATOR + " TEXT." +
-                "UNIQUE (" + OBJECTS_IDENTIFICATOR + "," + OBJECTS_KEY + "));");
+                "UNIQUE (" + OBJECTS_IDENTIFICATOR + "));");
 
     }
 
@@ -108,15 +108,17 @@ public class SqlDataManager extends SQLiteOpenHelper {
 
     }
 
-    private void writeObject(SQLiteDatabase db, String objectID, HashMap values, HashMap tables) {
+    private void writeObjectStructure(SQLiteDatabase db, String objectID, String keys, Map tables, int order) {
         ContentValues cv = new ContentValues();
         cv.put(OBJECTS_IDENTIFICATOR, objectID);
+        cv.put(OBJECTS_KEYS, keys);
+        cv.put(OBJECTS_ORDER, order);
         db.replace(OBJECTS_DB, null, cv);
     }
 
-    void writeObject(String objectID, HashMap values, HashMap tables) {
+    void writeObjectStructure(String objectID, String keys, Map tables, int order) {
         SQLiteDatabase db = getReadableDatabase();
-        writeObject(db, objectID, values, tables);
+        writeObjectStructure(db, objectID, keys, tables, order);
     }
 
     private Cursor getAllNotifications(SQLiteDatabase db) {
