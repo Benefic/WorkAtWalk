@@ -10,12 +10,12 @@
     <string name="error_incorrect_password">Неверный пароль</string>
     <string name="error_invalid_email">Неверный email</string>
     <string name="error_invalid_password">Пароль слишком короткий</string>
-    <string name="permission_rationale">\"Доступ к контактам требуется для автозаполнения email\"</string>
     <string name="prompt_password">Пароль</string>
     <string name="server">Сервер</string>
     <string name="title_activity_login">Вход</string>
     <string name="action_settings">Настройки</string>
     <string name="error_unknown">Неизвестная ошибка</string>
     <string name="no_error">Нет ошибок</string>
-    <string name="action_sign_up">Регистрация</string>
+    <string name="error_invalid_server">Неверный адрес сервера</string>
+    <string name="prompt_user">Пользователь</string>
 </resources>
