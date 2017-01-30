@@ -23,7 +23,6 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.Proxy;
 import java.util.ArrayList;
@@ -33,6 +32,16 @@ import java.util.List;
 class SoapHelper {
 
     private static SoapHelper instance;
+    private static String user;
+    private static String password;
+    private static String server;
+
+    public static void autenticate(String server, String user, String password) {
+        initialize();
+        SoapHelper.server = server;
+        SoapHelper.user = user;
+        SoapHelper.password = password;
+    }
 
     public static synchronized SoapHelper getManager() {
         initialize();
@@ -58,37 +67,12 @@ class SoapHelper {
         return netInfo != null && netInfo.isConnected();
     }
 
-    static String getErrorMessage(Context context, String errorCode) {
-        String message;
-        int code = Integer.parseInt(errorCode);
-
-        message = getErrorMessage(context, code);
-
-        return message;
-    }
-
-    static String getErrorMessage(Context context, int code) {
-        String message;
-
-        switch (code) {
-            case 0:
-                message = context.getString(R.string.no_error);
-                break;
-            //TODO add errors codes
-            default:
-                message = context.getString(R.string.error_unknown);
-                break;
-        }
-
-        return message;
-    }
-
     private HttpTransportSE getHttpTransportSE() {
         return getHttpTransportSE(10000);
     }
 
     private HttpTransportSE getHttpTransportSE(int timeout) {
-        HttpTransportSE ht = new HttpTransportSE(Proxy.NO_PROXY, Constant.MAIN_REQUEST_URL, timeout);
+        HttpTransportSE ht = new HttpTransportSE(Proxy.NO_PROXY, Constant.SERVER_ADDRESS, timeout);
         ht.debug = true;
         ht.setXmlVersionTag("<!--?xml version=\"1.0\" encoding= \"UTF-8\" ?-->");
         return ht;
@@ -108,8 +92,9 @@ class SoapHelper {
         SharedPreferences sPref = context.getSharedPreferences(Constant.PREFERENCES_NAME, Context.MODE_PRIVATE);
         @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(context.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        String login = Constant.REG_USER;
-        String password = Constant.REG_PASS;
+        // TODO: 30.01.17 is it needed yet?
+        //String login = Constant.REG_USER;
+        //String password = Constant.REG_PASS;
         String methodName = "RegisterDevice";
         SoapObject request = new SoapObject(Constant.NAMESPACE, methodName);
         request.addProperty("DeviceID", android_id);
@@ -122,7 +107,7 @@ class SoapHelper {
         HttpTransportSE ht = getHttpTransportSE();
         String result = "99";
         List<HeaderProperty> headerList = new ArrayList<>();
-        headerList.add(new HeaderProperty("Authorization", "Basic " + Base64.encode((login + ":" + password).getBytes())));
+        /*headerList.add(new HeaderProperty("Authorization", "Basic " + Base64.encode((login + ":" + password).getBytes())));
         try {
             ht.call(Constant.SOAP_ACTION, envelope, headerList);
 
@@ -134,13 +119,14 @@ class SoapHelper {
             e.printStackTrace();
         }
         return result;
+*/
+        return null;
     }
 
     @SuppressLint("HardwareIds")
     synchronized String[] soapRequest(Context context, String method, String requestParams) {
-        SharedPreferences sPref = context.getSharedPreferences(Constant.PREFERENCES_NAME, Context.MODE_PRIVATE);
-        String login = sPref.getString(Constant.USER_LOGIN, "");
-        String password = sPref.getString(Constant.USER_PASSWORD, "");
+        String login = SoapHelper.user;
+        String password = SoapHelper.password;
         String methodName = "ExecuteTask";
         String responseString;
         SoapObject request = new SoapObject(Constant.NAMESPACE, methodName);
@@ -156,7 +142,8 @@ class SoapHelper {
         List<HeaderProperty> headerList = new ArrayList<>();
         headerList.add(new HeaderProperty("Authorization", "Basic " + Base64.encode((login + ":" + password).getBytes())));
         try {
-            ht.call(Constant.SOAP_ACTION, envelope, headerList);
+            // TODO: 30.01.17 get it from account data
+            //ht.call(Constant.SOAP_ACTION, envelope, headerList);
             if (envelope.bodyIn instanceof SoapFault) {
                 ((SoapFault) envelope.bodyIn).printStackTrace();
                 return new String[]{"99"};
@@ -181,7 +168,7 @@ class SoapHelper {
         return requestResult;
     }
 
-    XmlPullParser prepareXpp(String input) throws XmlPullParserException {
+    private XmlPullParser prepareXpp(String input) throws XmlPullParserException {
         // получаем фабрику
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         // включаем поддержку namespace (по умолчанию выключена)
