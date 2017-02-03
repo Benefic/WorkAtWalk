@@ -4,18 +4,19 @@
 
 package ru.itmasterskaya.workatwalk;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.Intent;
 import android.content.Loader;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -26,8 +27,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import static android.Manifest.permission.READ_CONTACTS;
-
 /**
  * A login screen that offers login via email/password.
  */
@@ -36,17 +35,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     public static final String ARG_ACCOUNT_TYPE = "AccountType";
     public static final String ARG_AUTH_TYPE = "AuthTokenType";
     public static final String ARG_IS_ADDING_NEW_ACCOUNT = "IsAddingNewAccount";
-    /**
-     * Id to identity READ_CONTACTS permission request.
-     */
-    private static final int REQUEST_READ_CONTACTS = 0;
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
+    public static final String ACCOUNT_TYPE = "Work at walk";
+    private AccountManager mAccountManager;
+
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -58,6 +49,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mServerView;
     private View mProgressView;
     private View mLoginFormView;
+
+    public LoginActivity() {
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,37 +82,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+        mAccountManager = AccountManager.get(getBaseContext());
+
     }
 
-    private void populateAutoComplete() {
-        if (!mayRequestContacts()) {
-            return;
-        }
-
-        getLoaderManager().initLoader(0, null, this);
-    }
-
-    private boolean mayRequestContacts() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true;
-        }
-        if (checkSelfPermission(READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        }
-        if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
-            Snackbar.make(mUser, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
-                            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
-                        }
-                    });
-        } else {
-            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
-        }
-        return false;
-    }
 
     /**
      * Callback received when a permissions request has been completed.
@@ -126,11 +93,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_READ_CONTACTS) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                populateAutoComplete();
-            }
-        }
+
     }
 
 
@@ -158,7 +121,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         View focusView = null;
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+        if (!isPasswordValid(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
@@ -275,7 +238,36 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             // TODO: register the new account here.
             String accountToken = NetworkServices.autenticationRequest(getBaseContext(), mUser, mPassword);
-            return true;
+            if (accountToken.equals("false")) {
+                return false;
+            } else {
+                final Intent res = new Intent();
+                res.putExtra(AccountManager.KEY_ACCOUNT_NAME, mUser);
+                res.putExtra(AccountManager.KEY_ACCOUNT_TYPE, ARG_ACCOUNT_TYPE);
+                res.putExtra(AccountManager.KEY_AUTHTOKEN, accountToken);
+                res.putExtra(Constant.USER_PASSWORD, mPassword);
+                finishLogin(res);
+                return true;
+            }
+        }
+
+        private void finishLogin(Intent intent) {
+            String accountName = intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+            String accountPassword = intent.getStringExtra(Constant.USER_PASSWORD);
+            final Account account = new Account(accountName, intent.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE));
+            if (getIntent().getBooleanExtra(ARG_IS_ADDING_NEW_ACCOUNT, false)) {
+                String authtoken = intent.getStringExtra(AccountManager.KEY_AUTHTOKEN);
+                String authtokenType = ACCOUNT_TYPE;
+                // Creating the account on the device and setting the auth token we got
+                // (Not setting the auth token will cause another call to the server to authenticate the user)
+                mAccountManager.addAccountExplicitly(account, accountPassword, null);
+                mAccountManager.setAuthToken(account, authtokenType, authtoken);
+            } else {
+                mAccountManager.setPassword(account, accountPassword);
+            }
+            //setAccountAuthenticatorResult(intent.getExtras());
+            setResult(RESULT_OK, intent);
+            finish();
         }
 
         @Override

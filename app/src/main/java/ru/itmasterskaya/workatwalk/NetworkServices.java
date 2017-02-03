@@ -28,7 +28,9 @@ class NetworkServices {
     }
 
     static String autenticationRequest(Context context, String mUser, String mPassword) {
-        if (SoapHelper.isOnline(context)) {
+        // TODO: 04.02.17 change thith
+        return "OK";
+        /*if (SoapHelper.isOnline(context)) {
             SharedPreferences preferences = context.getSharedPreferences(Constant.PREFERENCES_NAME, Context.MODE_PRIVATE);
             SoapHelper.autenticate(preferences.getString(Constant.SERVER_ADDRESS, ""), mUser, mPassword);
             SoapHelper soapHelper = SoapHelper.getManager();
@@ -40,7 +42,7 @@ class NetworkServices {
                 return getErrorMessage(context, result[0]);
             }
         }
-        return "false";
+        return "false";*/
     }
 
     static String getErrorMessage(Context context, String errorCode) {
